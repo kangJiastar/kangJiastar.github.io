@@ -7,9 +7,9 @@ permalink:        pretty
 relative_permalinks: true
 
 # Setup
-title:            KJX
-tagline:          'A Jekyll theme'
-description:      'A brazen two-column <a href="http://www.jianshu.com/users/6106aa880b8a/latest_articles" target="_blank">简书</a> theme that pairs a prominent sidebar with uncomplicated content. Made by <a href="https://twitter.com/mdo" target="_blank">@mdo</a>.'
+title:            康熙
+tagline:          '康熙的技术博客'
+description:      '以前写的一些笔记 <a href="http://www.jianshu.com/users/6106aa880b8a/latest_articles" target="_blank">简书</a> theme that pairs a prominent sidebar with uncomplicated content. Made by <a href="https://twitter.com/mdo" target="_blank">@mdo</a>.'
 url:              http://hyde.getpoole.com
 baseurl:          /
 
