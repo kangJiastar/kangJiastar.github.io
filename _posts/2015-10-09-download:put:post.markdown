@@ -5,19 +5,6 @@ date:   2015-10-09 10:37:30
 categories: jekyll update
 ---
 
-
-
-{% highlight objc %}
-{% endhighlight %}
-
-Check out the [Jekyll docs][jekyll] for more info on how to get the most out of Jekyll. File all bugs/feature requests at [Jekyll’s GitHub repo][jekyll-gh]. If you have questions, you can ask them on [Jekyll’s dedicated Help repository][jekyll-help].
-
-[jekyll]:      http://jekyllrb.com
-[jekyll-gh]:   https://github.com/jekyll/jekyll
-[jekyll-help]: https://github.com/jekyll/jekyll-help
-
-
-
 使用`NSURLSession`进行上传和下载任务，`NSURLSession`是iOS7之后推出的,具有`downLoadTask`和`upLoadTask`功能，实现任务时，会先将任务挂起，这样可以实现断点续传功能，使用时候要注意`resume`
 
 ###下载
