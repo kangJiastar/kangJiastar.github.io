@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Welcome to Jekyll!"
+title:  "Welcome to my blog"
 date:   2015-10-09 10:37:30
 categories: jekyll update
 ---
@@ -23,7 +23,7 @@ To add new posts, simply add a file in the `_posts` directory that follows the c
 
 Jekyll also offers powerful support for code snippets:
 
-{% highlight ruby %}
+{% highlight objc %}
 - (void)setupDefaultAttributes
 {
     borderView = [[SPGripViewBorderView alloc] init];
