@@ -1,0 +1,180 @@
+---
+layout: post
+title:  "解压zip"
+date:   2015-10-09 10:37:30
+categories: jekyll update
+---
+
+
+##1.沙盒路径
+{% highlight objc %}
+/** 沙盒目录 */
+- (void)sandBoxDemo
+{
+    // mainBundle
+    NSString *bundlePath = [NSBundle mainBundle].bundlePath;
+    NSLog(@"%@", bundlePath);
+    
+    // 主目录
+    NSString *homeDir = NSHomeDirectory();
+    NSLog(@"%@", homeDir);
+    
+    // Documents 跟用户个人有关的文档，iTunes、iCloud可以"备份"手机 -> 自动备份Documents目录中的文件
+    // 保存应用程序自身生成的数据文件，从网络上下载的文件，不要保存在此文件夹中！
+    //可以在标记之后保存到该目录
+    //标记方式,标记后不会备份到iCloud
+    + (BOOL)addSkipBackupAttributeToItemAtURL:(NSURL *)URL
+    {
+        const char* filePath = [[URL path] fileSystemRepresentation];
+        
+        const char* attrName = "com.apple.MobileBackup";
+        u_int8_t attrValue = 1;
+        
+        int result = setxattr(filePath, attrName, &attrValue, sizeof(attrValue), 0, 0);
+        return result == 0;
+    }
+    
+    // 1. 提示：要拼接路径，统一使用stringByAppendingPathComponent方法，能够自动处理"/"
+    NSString *docDir1 = [homeDir stringByAppendingPathComponent:@"Documents"];
+    NSLog(@"%@", docDir1);
+    
+    // 2. 专业方法，在OC开发中，一般如果遇到使用函数，这个函数通常是iOS和MAC通用的！
+    // 苹果是闭源的系统为了防止苹果调整文档目录的名称，使用下面方法
+    /**
+     参数
+     1. NSDocumentDirectory 搜索路径的类型
+     2. NSUserDomainMask    在iOS上固定的
+     3. 是否展开波浪号         YES
+     */
+    NSString *docDir2 = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+    NSLog(@"%@", docDir2);
+    
+    // 默认情况下，Documentation是不存在的，如果要使用，需要自己创建！
+    // 如果没有创建这个目录，往其中写文件，iOS不会报任何错误！
+    NSString *errorDir = [NSSearchPathForDirectoriesInDomains(NSDocumentationDirectory, NSUserDomainMask, YES) lastObject];
+    NSLog(@"%@", errorDir);
+    
+    // 3. Caches 缓存目录，通常保存从网络下载的文件，提供用户离线观看，重新启动，不会被清空
+    // 程序员需要提供清理缓存的功能:包括程序清理，检查过期数据，同时提供用户手动清理缓存的操作！
+    NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
+    NSLog(@"%@", cacheDir);
+    
+    // 4. tmp 目录，通常保存从网络上下载的文件，不需要持久保存，手机重新启动，就会清空
+    NSString *tmpDir = NSTemporaryDirectory();
+    NSLog(@"%@", tmpDir);
+    
+    // 5. Preferences偏好设置目录，保存手机常用设置信息，用户的个人信息，例如用户名，密码
+    // 直接使用setXXX方法赋值即可，无需获得路径
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    
+    [defaults setObject:@"rose" forKey:@"UserName"];
+    [defaults setBool:YES forKey:@"AutoLogin"];
+    
+    // 默认情况下，往偏好设置保存数据，更新的非常慢，如果需要及时保存，需要使用一个同步方法
+    [defaults synchronize];
+}
+{% endhighlight %}
+
+### 注意:
+
+>  0.提供一个在真机情况下查找到沙盒的办法`Xcode` -> `window` ->`devices`找到自己的项目,选中,找到+ - 号边上的那个,可以下载下来,也可以直接查看
+>  1.在虚拟器情况下,打印出路径的时候才可以才`MAC`中找到,建议对沙盒进行研究的时候使用虚拟器进行测试,并将结果转嫁到代码中.
+>  2.在自己敲路径的时候,可以点击前两个字母使用`tab`进行路径补全
+
+### 福利:
+
+>关于文件目录(转载)
+[iOS学习之iOS沙盒(sandbox)机制和文件操作](http://blog.csdn.net/totogo2010/article/details/7671144)
+                              
+                              
+一般情况下程序中会在`bundle`中,也就是程序中内嵌部分压缩包来表示默认的一些字体或者版式,这时候我们可以在使用的时候将这些压缩包利用[ZipArchive](https://github.com/ZipArchive/ZipArchive)解压到`cache`文件中进行解压操作.
+                                                                                                                
+##2.归档/解档
+                                                                                                                
+{% highlight objc %}
+/** 读取自定义对象 */
+ - (void)readObj
+{
+    NSString *docDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+    NSString *path = [docDir stringByAppendingPathComponent:@"demoobj.plist"];
+    
+    // 从二进制文件读取数据并转换成自定义对象，使用接档
+    CZPerson *p = [NSKeyedUnarchiver unarchiveObjectWithFile:path];
+    NSLog(@"%@ %d", p.name, p.age);
+}
+                                                                                                                
+/** 写入自定义对象 */
+- (void)writeObj
+{
+    CZPerson *p = [CZPerson personWithName:@"zhangsan" age:18];
+    
+    NSArray *array = @[p];
+    
+    NSString *docDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+    NSString *path = [docDir stringByAppendingPathComponent:@"demoobj.plist"];
+    
+    // 如果要将自定义对象，写入文件，需要使用到一个技术："归档->保存到文件"
+    // 键值归档Archive
+    [NSKeyedArchiver archiveRootObject:p toFile:path];
+    
+    NSLog(@"OK");
+    // 自定义对象无法直接写入
+    //    [array writeToFile:path atomically:YES];
+}
+                                                                                                                
+{% endhighlight %}
+                                                                                                                
+归档/解档的目的是读取/写入自定义的对象,自定义的对象要进行相应的设置,就是在类里面添加两个方法
+                                                                                                                
+{% highlight objc %}
+// 调用[NSKeyedArchiver archiveRootObject:p toFile:path];方法时，会自动调用encodeWithCoder方法对对象进行编码
+- (void)encodeWithCoder:(NSCoder *)encoder
+{
+    // 第一个参数：保存属性的成员变量
+    // 第二个参数：保存的键值，通常和对象的属性名一致
+    [encoder encodeObject:_name forKey:@"name"];
+    [encoder encodeInt:_age forKey:@"age"];
+}
+                                                                                                                
+// 调用[NSKeyedUnarchiver unarchiveObjectWithFile:path];方法时，会自动调用initWithCoder方法对二进制数据进行解码
+// decoder 解码器
+                                                                                                                
+- (id)initWithCoder:(NSCoder *)decoder
+{
+    self = [super init];
+    if (self) {
+        // *** 注意，使用的键值名称，要与编码时的键名保持一致
+        _name = [decoder decodeObjectForKey:@"name"];
+        _age = [decoder decodeIntForKey:@"age"];
+    }
+    return self;
+}
+{% endhighlight %}
+                                                                                                                
+##3.取值
+                                                                                                                
+{% highlight objc %}
+//普通对象(本例为一张图片)
+    NSString *docDir1 = [cacheDir stringByAppendingPathComponent:@"thumb.img"];
+    UIImage *image = [UIImage imageWithContentsOfFile:docDir1];
+                                                                                                                    
+    //json对象(取出响应的字典)
+    NSError *error = nil;
+    NSString *dictPath = [cacheDir stringByAppendingPathComponent:@"data.json"];
+    NSData *data = [NSData dataWithContentsOfFile:dictPath];
+                                                                                                                    
+    NSDictionary *photo = [NSJSONSerialization JSONObjectWithData:data
+                                                          options:NSJSONReadingMutableLeaves
+                                                            error:&error];
+                                                                                                                    
+    //字典转模型
+    YQModelLayout *modelLayout = [YQModelLayout modelWithKeyValues:photo];
+                                                                                                                    
+    NSLog(@"%@",image);
+    NSLog(@"%zd",modelLayout.ID);
+                                                                                                                
+{% endhighlight %}
+其中,字典转模型,可以考虑的框架[MJExtension](https://github.com/CoderMJLee/MJExtension)
+
+
+
