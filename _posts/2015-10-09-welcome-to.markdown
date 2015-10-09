@@ -1,0 +1,64 @@
+---
+layout: post
+title:  "Welcome to Jekyll!"
+date:   2015-10-09 10:37:30
+categories: jekyll update
+---
+
+#大标题
+
+##二标题
+
+###三标题
+
+> * 引用
+
+
+`You’ll find this post in your`
+
+
+You’ll find this post in your `_posts` directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run `jekyll serve`, which launches a web server and auto-regenerates your site when a file is updated.
+
+To add new posts, simply add a file in the `_posts` directory that follows the convention `YYYY-MM-DD-name-of-post.ext` and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.
+
+Jekyll also offers powerful support for code snippets:
+
+{% highlight ruby %}
+- (void)setupDefaultAttributes
+{
+    borderView = [[SPGripViewBorderView alloc] init];
+    [borderView setHidden:YES];
+    [self addSubview:borderView];
+    
+    //旋转
+    self.resizingControl = [[UIButton alloc]init];
+    self.resizingControl.backgroundColor = [UIColor clearColor];
+    self.resizingControl.userInteractionEnabled = YES;
+    [self.resizingControl setImage:[UIImage imageNamed:@"scale_btn"] forState:UIControlStateHighlighted];
+    [self.resizingControl setImage:[UIImage imageNamed:@"scale_btn"] forState:UIControlStateNormal];
+    
+    //删除
+    self.deleteControl = [[UIButton alloc] init];
+    self.deleteControl.backgroundColor = [UIColor clearColor];
+    [self.deleteControl addTarget:self action:@selector(deleteBtnClick) forControlEvents:UIControlEventTouchUpInside];
+    self.deleteControl.userInteractionEnabled = YES;
+    [self.deleteControl setImage:[UIImage imageNamed:@"deleteBtn"] forState:UIControlStateHighlighted];
+    [self.deleteControl setImage:[UIImage imageNamed:@"deleteBtn"] forState:UIControlStateNormal];
+    
+    //旋转点手势
+    UIPanGestureRecognizer* panResizeGesture = [[UIPanGestureRecognizer alloc]
+                                                initWithTarget:self
+                                                action:@selector(resizeTranslate:)];
+    [self.resizingControl addGestureRecognizer:panResizeGesture];
+    self.deltaAngle = atan2(self.frame.origin.y+self.frame.size.height - self.center.y,
+                            self.frame.origin.x+self.frame.size.width - self.center.x);
+}
+{% endhighlight %}
+
+Check out the [Jekyll docs][jekyll] for more info on how to get the most out of Jekyll. File all bugs/feature requests at [Jekyll’s GitHub repo][jekyll-gh]. If you have questions, you can ask them on [Jekyll’s dedicated Help repository][jekyll-help].
+
+[jekyll]:      http://jekyllrb.com
+[jekyll-gh]:   https://github.com/jekyll/jekyll
+[jekyll-help]: https://github.com/jekyll/jekyll-help
+
+
