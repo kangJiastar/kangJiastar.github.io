@@ -352,3 +352,14 @@ categories: jekyll update
 {% endhighlight %}
 
 
+
+
+
+[多种方式实现文件的上传/下载][jekyll - DB]
+ 
+
+[jekyll - DB]:     http://www.cocoachina.com/ios/20151012/13621.html
+
+	
+
+

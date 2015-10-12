@@ -185,6 +185,9 @@ LIMIT 0,2 等价于 LIMIT 2
 
 ###[将图片保存到数据库][jekyll - DB]
 
+
+
+
 	
 [jekyll - DB]:     http://m.blog.csdn.net/blog/wei78008023/44903541
 
