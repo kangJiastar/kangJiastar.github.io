@@ -1,0 +1,152 @@
+---
+layout: post
+title:  "runtime"
+date:   2015-10-09 10:37:30
+categories: jekyll update
+---
+
+
+#什么是runtime？
+
+1> runtime是一套底层的C语言API（包含很多强大实用的C语言数据类型、C语言函数）
+2> 实际上，平时我们编写的OC代码，底层都是基于runtime实现的
+* 也就是说，平时我们编写的OC代码，最终都是转成了底层的runtime代码（C语言代码）
+
+#runtime有啥用？
+
+1> 能动态产生一个类、一个成员变量、一个方法
+
+2> 能动态修改一个类、一个成员变量、一个方法
+
+3> 能动态删除一个类、一个成员变量、一个方法
+
+常见的函数、头文件
+
+`#import <objc/runtime.h> : 成员变量、类、方法`
+
+获得某个类内部的所有成员变量
+
+`Ivar * class_copyIvarList`
+
+获得某个类内部的所有方法
+
+`Method * class_copyMethodList`
+
+获得某个实例方法（对象方法，减号-开头）
+
+`Method class_getInstanceMethod`
+
+获得某个类方法（加号+开头）
+
+`Method class_getClassMethod`
+
+交换2个方法的具体实现
+
+`method_exchangeImplementations`
+
+消息机制
+
+`#import <objc/message.h>  objc_msgSend(....)`
+
+
+## 获取某个类的所有成员变量(延伸作用是归档、解档)
+
+{% highlight objc %}
+- (void)testRuntimeIvar
+{
+    // Ivar : 成员变量
+    unsigned int count = 0;
+    // 获得所有的成员变量
+    //指针可以理解成为数组（根据1、2、3进行取值）
+    Ivar *ivars = class_copyIvarList([HMPerson class], &count);
+    for (int i = 0; i<count; i++) {
+        // 取得i位置的成员变量
+        Ivar ivar = ivars[i];
+        const char *name = ivar_getName(ivar);
+        const char *type = ivar_getTypeEncoding(ivar);
+        NSLog(@"%d %s %s", i, name, type);
+    }
+    
+    //    HMPerson *p = [[HMPerson alloc] init];
+    //    objc_msgSend(p, @selector(setAge:), 20);
+    
+    //    NSLog(@"%d", p.age);
+}
+{% endhighlight %}
+
+归档代码
+{% highlight objc %}
+- (void)encodeWithCoder:(NSCoder *)encoder
+{
+    unsigned int count = 0;
+    Ivar *ivars = class_copyIvarList([HMPerson class], &count);
+    for (int i = 0; i<count; i++) {
+        // 取得i位置的成员变量
+        Ivar ivar = ivars[i];
+        const char *name = ivar_getName(ivar);
+        NSString *key = [NSString stringWithUTF8String:name];
+        [encoder encodeObject:[self valueForKeyPath:key] forKey:key];
+    }
+}
+
+{% endhighlight %}
+
+## 交换两个方法的实现
+
+交换方法
+
+`OBJC_EXPORT void method_exchangeImplementations(Method m1, Method m2) 
+`
+
+获得方法
+
+` Method class_getClassMethod(Class cls, SEL name)
+`
+
+例：
+
+ - 分类加载进内存的时候会调用`load`方法，只会调用一次。当使用这个方法的时候，不需要声明也不需要写`.h`方法。因为所有`.m`方法都会加入内存中，调用到`load`中。
+  
+ - 实现了`imageWithName:`和`imageNamed:`方法的交换，需要注意的问题是再重写`imageWithName:`时候不要在内部使用`imageNamed:`方法
+
+{% highlight objc %}
+#import <objc/runtime.h>
+
+@implementation UIImage (Extension)
+/**
+ *  只要分类被装载到内存中，就会调用1次
+ */
++ (void)load
+{
+    Method otherMehtod = class_getClassMethod(self, @selector(imageWithName:));
+    Method originMehtod = class_getClassMethod(self, @selector(imageNamed:));
+    // 交换2个方法的实现
+    method_exchangeImplementations(otherMehtod, originMehtod);
+}
+
++ (UIImage *)imageWithName:(NSString *)name
+{
+    BOOL iOS7 = [[UIDevice currentDevice].systemVersion floatValue] >= 7.0;
+    UIImage *image = nil;
+    if (iOS7) {
+        NSString *newName = [name stringByAppendingString:@"_os7"];
+        image = [UIImage imageWithName:newName];
+    }
+    
+    if (image == nil) {
+        image = [UIImage imageWithName:name];
+    }
+    return image;
+}
+{% endhighlight %}
+参考资料：
+
+链接: [http://pan.baidu.com/s/1i3JB56d][jekyll - DB] 密码: cmh6
+
+
+
+	
+[jekyll - DB]:    http://pan.baidu.com/s/1i3JB56d
+
+
+
