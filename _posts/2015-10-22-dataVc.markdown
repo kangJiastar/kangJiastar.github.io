@@ -1,0 +1,113 @@
+---
+layout: post
+title:  "纯代码创建视图控制器"
+date:   2015-10-09 10:37:30
+categories: jekyll update
+---
+
+
+`loadView`方法是苹果公司专门为程序员提供的，用代码创建视图层次结构的方法！此方法的工作类似于在`Storyboard`中搭建界面的过程！
+ 
+ 注意事项：
+ 
+ 1> 如果`self.view`不存在 `nil`，在使用`self.view`的`getter`，系统会自动调用`loadView`方法
+ 2> 如果`self.view`没有被实例化之前，不要在`loadView`方法中调用`self.view`，否则会死循环
+ 3> 在`loadView`方法中，永远不要调用[super loadView];父类方法默认会创建一个空视图
+ 
+ 4>  懒(延迟)加载在OC中，是无处不在！
+     视图只有在需要的时候，才会被创建！以下两句话是等效的。
+` vc.view.backgroundColor = [UIColor blueColor];`
+` [[vc view] setBackgroundColor:[UIColor blueColor]];`
+
+当执行`[vc view]`这句话的时候，其实已经调用了`loadView`函数了，之后所设置的值将会晚于`loadView`执行，这样可以使得得到的结果凌驾于`loadView`之上，所以显示的颜色会是蓝色的
+ 
+ 只有真的需要用纯代码创建视图层次结构的时候，才需要些loadView
+ 
+{% highlight objc %}
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    // Override point for customization after application launch.
+    self.window.backgroundColor = [UIColor whiteColor];
+
+    NSLog(@"1--------");
+    CZViewController *vc = [[CZViewController alloc] init];
+    self.window.rootViewController = vc;
+    
+    // 懒(延迟)加载在OC中，是无处不在！
+    // 视图只有在需要的时候，才会被创建！以下两句话是等效的。
+    vc.view.backgroundColor = [UIColor blueColor];
+    [[vc view] setBackgroundColor:[UIColor blueColor]];
+    
+    NSLog(@"2--------");
+    // 让window可见并成为主窗口，会加载视图控制器的视图，并显示出来(loadView&viewDidLoad)，
+    [self.window makeKeyAndVisible];
+    NSLog(@"3--------");
+    return YES;
+}
+
+{% endhighlight %}
+
+
+{% highlight objc %}
+
+/** 是视图控制器默认的初始化方法 */
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+{
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self) {
+        NSLog(@"%s", __func__);
+    }
+    return self;
+}
+
+- (void)loadView
+{
+    NSLog(@"%s", __func__);
+    
+    // 会死循环
+//    NSLog(@"%@", self.view);
+    
+    // 父类的默认方法白干！
+//    [super loadView];
+//    NSLog(@"%p", self.view);
+    self.view = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+//    NSLog(@"%p", self.view);
+    
+    self.view.backgroundColor = [UIColor redColor];
+    
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeContactAdd];
+    btn.center = self.view.center;
+    [self.view addSubview:btn];
+    
+    [btn addTarget:self action:@selector(click) forControlEvents:UIControlEventTouchUpInside];
+    
+    // 在末尾调用父类方法，前面全白干！
+//    NSLog(@"%p", self.view);
+//    [super loadView];
+//    NSLog(@"%p", self.view);
+}
+
+- (void)click
+{
+    NSLog(@"%s", __func__);
+}
+
+/**
+ 视图完成加载后会自动被调用
+ 
+ 通常在此处可以做一些数据初始化的工作！
+ */
+- (void)viewDidLoad
+{
+    // 调用父类方法
+    [super viewDidLoad];
+
+//    NSLog(@"%@", self.view.backgroundColor);
+    NSLog(@"%s", __func__);
+}
+
+{% endhighlight %}
+
+
