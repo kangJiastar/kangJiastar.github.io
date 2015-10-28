@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "runtime"
-date:   2015-10-09 10:37:30
+date:   2015-10-22 10:37:30
 categories: jekyll update
 ---
 
@@ -185,11 +185,28 @@ categories: jekyll update
 
 当对象收到消息时,消息函数首先根据该对象的isa指针找到该对象所对应的类的方法表,并从表中寻找 该消息对应的方法选标。如果找不到,objc_msgSend 将继续从父类中寻找,直到 NSObject 类。一 旦找到了方法选标, objc_msgSend 则以消息接收者对象为参数调用,调用该选标对应的方法实现。这就是在运行时系统中选择方法实现的方式。在面向对象编程中,一般称作方法和消息动态绑定的过程。
 为了加快消息的处理过程,运行时系统通常会将使用过的方法选标和方法实现的地址放入缓存中。每个类都有一个独立的缓存,同时包括继承的方法和在该类中定义的方法。消息函数会首先检查消息接收者对象对应的类的缓存(理论上,如果一个方法被使用过一次,那么它很可能被再次使用)。如果在缓存中已经有了需要的方法选标,则消息仅仅比函数调用慢一点点。如果程序运行了足够长的时间,几乎每个消息都能在缓存中找到方法实现。程序运行时,缓存也将随着新的消息的增加而增加。
+##消息转发
 
+如果一个对象收到一条无法处理的消息,运行时系统会在抛出错误前,给该对象发送一条`forwardInvocation:`消息,该消息的唯一参数是个 `NSInvocation` 类型的对象——该对象封装了 原始的消息和消息的参数。
 
+###防止crash , 但是具体消息怎么转发并不清楚
 
+{% highlight objc %}
+#pragma mark - Missing selector crash protection
 
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel {
+    SEL doNothingSEL = @selector(doNothing);
+    NSMethodSignature *signature = [[self class] instanceMethodSignatureForSelector:doNothingSEL];
+    return signature;
+}
 
+- (void)forwardInvocation:(NSInvocation *)inv {
+}
+
+- (void)doNothing {
+}
+
+{% endhighlight %}
 
 参考资料：
 

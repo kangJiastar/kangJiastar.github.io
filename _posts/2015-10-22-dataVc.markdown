@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "纯代码创建视图控制器"
-date:   2015-10-09 10:37:30
+date:   2015-05-09 10:37:30
 categories: jekyll update
 ---
 
