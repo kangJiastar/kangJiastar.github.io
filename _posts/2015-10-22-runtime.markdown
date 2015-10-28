@@ -158,6 +158,8 @@ categories: jekyll update
 
 ##获得方法地址
 
+` 编译时没问题，运行时才执行相应的方法，这就是所谓的动态绑定。`
+
 避免动态绑定的唯一办法就是取得方法的地址,并且直接象函数调用一样调用它。当一个方法会被连续调 用很多次,而且您希望节省每次调用方法都要发送消息的开销时,使用方法地址来调用方法就显得很有效。
 
 利用 Cocoa 运行时系统的提供的功能 ` methodForSelector:` 实现某个方法
@@ -189,21 +191,35 @@ categories: jekyll update
 
 如果一个对象收到一条无法处理的消息,运行时系统会在抛出错误前,给该对象发送一条`forwardInvocation:`消息,该消息的唯一参数是个 `NSInvocation` 类型的对象——该对象封装了 原始的消息和消息的参数。
 
-###防止crash , 但是具体消息怎么转发并不清楚
+###防止crash 
 
 {% highlight objc %}
-#pragma mark - Missing selector crash protection
 
-- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel {
-    SEL doNothingSEL = @selector(doNothing);
-    NSMethodSignature *signature = [[self class] instanceMethodSignatureForSelector:doNothingSEL];
-    return signature;
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector {
+    
+    //Person实现了`invocation selector`方法
+    return [Person instanceMethodSignatureForSelector:aSelector];
+    
+    //传递参数到forwardInvocation: 的invocation的key,采用的是传递方式的办法
+    //   return [NSMethodSignature signatureWithObjCTypes:"v@:@"];
+    
 }
 
-- (void)forwardInvocation:(NSInvocation *)inv {
-}
 
-- (void)doNothing {
+- (void)forwardInvocation:(NSInvocation *)invocation
+{
+    Person *person = [[Person alloc] init];
+//
+//    NSString *key = NSStringFromSelector([invocation selector]);
+    
+     NSString *sel = NSStringFromSelector([invocation selector]);
+     NSLog(@"%@",sel);
+    
+    
+    if ([person respondsToSelector:         [invocation selector]])        [invocation invokeWithTarget:person];
+        else        NSLog(@"nothing");
+    //程序会crash
+//    [super forwardInvocation:invocation]
 }
 
 {% endhighlight %}
